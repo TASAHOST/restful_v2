@@ -1,7 +1,7 @@
-module.expors ={
+module.exports ={
 
     HOST:"localhost",
     USER:"root",
     PASSWORD:"",
-    DB:"restaurants"
+    DB:"restaurant"
 }
