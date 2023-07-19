@@ -1,4 +1,4 @@
-const routes = require("../routes/restaurant.routes")
+const routes = require("../routes/restaurant.routes.sql")
 const sql = require("./db.sql");
 //constructor
 const Restaurant = function (restaurant) {

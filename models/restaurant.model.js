@@ -1,7 +1,7 @@
-const { DataType, DataTypes} = require("sequelize");
+const {DataTypes} = require("sequelize");
 const sequelize = require("./db");
 
-const Restaurant = sequelize.define("restuarant",{
+const Restaurant = sequelize.define("restaurant",{
     id:{
         type:DataTypes.INTEGER,
         primaryKey:true,
@@ -12,21 +12,21 @@ const Restaurant = sequelize.define("restuarant",{
         allowNull:false
 
     },
-    Image:{
-        type:DataTypes.TEXT,
+    image:{
+        type:DataTypes.STRING,
         allowNull:false
     },
     createdAt:{
         type:DataTypes.DATE,
-        allowNull:false,
-        defaultValue : Date.now
+        allowNull:true,
+        defaultValue : DataTypes.NOW
 
     },
-    updateAt:{
+    updatedAt:{
         type:DataTypes.DATE,
         allowNull: true,
-        defaultValue :Date.now
-    }
+        defaultValue :DataTypes.NOW
+    },
 });
 
 module.exports = Restaurant;
