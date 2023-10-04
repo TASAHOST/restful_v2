@@ -13,4 +13,5 @@ module.exports = function (app) {
     checkRolesExisted],
     controller.signup
     );
+    app.post("/api/auth/signin",controller.signin)
 };
