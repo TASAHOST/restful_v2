@@ -30,17 +30,23 @@ routes.get("/restaurants", async(req, res)=>{
     }
 })
 
-routes.get("/restaurants/:id",[authJwt.verifyToken], async(req, res)=>{
+
+routes.put("/restaurant/:id",[authJwt.verifyToken,authJwt.isAdmin], async (req,res)=>{
     try {
         const restaurantId = req.params.id;
-        const restaurant = Restaurant.getById(restaurantId);
-        res.status(200).json(restaurant)
+        const restaurantData = req.body;
+        const updateRestaurant = await Restaurant.updateById(restaurantId, restaurantData)
+        res.status(200).json(updateRestaurant);
     } catch (error) {
-        res.status(500).json({error:"failed to get restaurant by id"});
+        if (error.kind === "not_found") {
+            res.status(400).json("Restaurant not found")
+        }else{
+            res.status(500).json({error:"failed to Update Restaurant data"});
+        }
     }
 })
 
-routes.put("/restaurants/:id", async (req,res)=>{
+routes.put("/restaurants/:id",[authJwt.verifyToken, authJwt.isAdmin], async (req,res)=>{
     try {
         const restaurantId = req.params.id;
         const restaurantData = req.body;
@@ -55,7 +61,7 @@ routes.put("/restaurants/:id", async (req,res)=>{
     };
 })
 
-routes.delete("/restaurant/.id", async (req, res)=>{
+routes.delete("/restaurant/.id",[authJwt.verifyToken, authJwt.isAdmin], async (req, res)=>{
     try {
         const restaurantId = req.params.id;
         const isDelete = await Restaurant.removeById(restaurantId);

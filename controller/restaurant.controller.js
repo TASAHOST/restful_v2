@@ -27,6 +27,7 @@ Restaurant.getById = async (restaurantId) => {
     try {
         const restaurants = await Restaurant.findByPk(restaurantId);
         if (restaurants) {
+            console.log(restaurants);
             return restaurants.toJSON();
         } else {
             throw {kind: "not found"};
