@@ -1,6 +1,7 @@
 const express = require("express");
 const routes = express.Router();
 const Restaurant = require("../controller/restaurant.controller");
+const {authJwt} = require("../middleware")
 
 
 //http://localhost:5000/restaurant
@@ -29,7 +30,7 @@ routes.get("/restaurants", async(req, res)=>{
     }
 })
 
-routes.get("/restaurants/:id", async(req, res)=>{
+routes.get("/restaurants/:id",[authJwt.verifyToken], async(req, res)=>{
     try {
         const restaurantId = req.params.id;
         const restaurant = Restaurant.getById(restaurantId);
