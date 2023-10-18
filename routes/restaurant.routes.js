@@ -50,7 +50,7 @@ routes.put("/restaurants/:id",[authJwt.verifyToken, authJwt.isAdmin], async (req
     try {
         const restaurantId = req.params.id;
         const restaurantData = req.body;
-        const updatesRestaurant = await Restaurant.updateById(restaurantId);
+        const updateRestaurant = await Restaurant.updateById(restaurantId);
         res.status(200).json(updateRestaurant);
     } catch (error) {
         if (error.kind === "not_Found") {
@@ -66,7 +66,7 @@ routes.delete("/restaurant/.id",[authJwt.verifyToken, authJwt.isAdmin], async (r
         const restaurantId = req.params.id;
         const isDelete = await Restaurant.removeById(restaurantId);
         if (isDelete) {
-            res.status(204).json({message: "Restaurant id " + restaurantId + "is deleted", isDeleted: isDeleted,});
+            res.status(204).json({message: "Restaurant id " + restaurantId + "is deleted", isDeleted: isDelete,});
         }
     } catch (error) {
         if (error.kind === "not_found") {
