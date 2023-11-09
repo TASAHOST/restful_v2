@@ -92,49 +92,55 @@ exports.signin = async (req, res) => {
 };
 
 
-exports.refreshToken = async (req,res)=>{
-    const {refreshToken:refreshToken} = req.body;
+exports.refreshToken = async (req, res) => {
+    const { refreshToken } = req.body;
+
     if (refreshToken == null) {
-        return res.status(403).json({message:"Refresh Token is req"})
+        return res.status(403).json({ message: "Refresh Token is required" });
     }
-  try {
-      let refreshToken = await RefreshToken.findOne({
-          where: {
-              token: requestToken,
-          },
-      })
-      if (!refreshToken) {
-          res.status(403).json({
-              message: "Refresh Token is not in Database!"
-          })
-          return;
-      }
-      if (RefreshToken.verifyExpiration(refreshToken)) {
-          RefreshToken.destroy({
-              where: {
-                  id: refreshToken.id
-              }
-          });
-          res.status(403).json({
-              message: "Refresh Token was expired. Please make a new signin request"
-          });
-          return;
-      }
-      const user = await refreshToken.getUser();
-      let newAccessToken = token = jwt.sign({
-          id: user.id
-      }, config.secret, {
-          algorithm: "HS256",
-          allowInsecureKeySizes: true,
-          expiresIn: config.jwtExpiration,
-      });
-      return res.status(200).json({
-          accessToken: newAccessToken,
-          refreshToken: refreshToken.token
-      })
-  } catch (error) {
-      return res.status(500).send({
-          message: error
-      });
+
+    try {
+        const foundRefreshToken = await RefreshToken.findOne({
+            where: {
+                token: refreshToken,
+            },
+        });
+
+        if (!foundRefreshToken) {
+            res.status(403).json({
+                message: "Refresh Token is not in the Database!"
+            });
+            return;
+        }
+
+        if (await RefreshToken.verifyExpiration(foundRefreshToken)) {
+            await RefreshToken.destroy({
+                where: {
+                    id: foundRefreshToken.id
+                }
+            });
+            res.status(403).json({
+                message: "Refresh Token has expired. Please make a new sign-in request"
+            });
+            return;
+        }
+
+        const user = await foundRefreshToken.getUser();
+        const newAccessToken = jwt.sign({
+            id: user.id
+        }, config.secret, {
+            algorithm: "HS256",
+            allowInsecureKeySizes: true,
+            expiresIn: config.jwtExpiration,
+        });
+
+        return res.status(200).json({
+            accessToken: newAccessToken,
+            refreshToken: foundRefreshToken.token
+        });
+    } catch (error) {
+        return res.status(500).send({
+            message: error.message
+        });
     }
-}
+};

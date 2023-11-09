@@ -1,5 +1,5 @@
 module.exports = {
-    secret:"worachet-secret-kye",
+    secret:"foodpandy-secret-kye",
     //ตัวเทส
     jwtExpiration:3600,
     jwtRefreshExpiration:86400,
