@@ -1,8 +1,5 @@
 const db = require("../models");
 const config = require("../config/auth.config");
-/* const User = db.user;
-const Role = db.role;
-const RefreshToken = db.refreshToken; */
 const {user:User, role:Role , refreshToken:RefreshToken} = db;
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
@@ -48,53 +45,52 @@ exports.signup = (req, res) => {
         })
 };
 
+
 //signin
-exports.signin = (req, res) => {
-    //SELECT * FROM user WHERE username = req.body.username
-    User.findOne({
-        where:{username: req.body.username,
-        }
-        
-    }).then(async user => {
+exports.signin = async (req, res) => {
+    try {
+        const user = await User.findOne({
+            where: { username: req.body.username }
+        });
+
         if (!user) {
             return res.status(404).send({
                 message: "User not found"
             });
         }
-        let passwordIsValid = bcrypt.compareSync(req.body.password, user.password)
+        
+        const passwordIsValid = await bcrypt.compare(req.body.password, user.password);
+
         if (!passwordIsValid) {
             return res.status(401).send({
-                acceccToken: null,
-                message:"Invalid Password"
+                accessToken: null,
+                message: "Invalid Password"
             });
         }
-        const token = jwt.sign({id:user.id},
-           config.secret,{
-            algorithm:"HS256",
-            allowInsecureKeySizes:true,
-            expiresIn: config.jwtExpiration, //24hr = 60 * 24
-           });
-           const refreshToken = await RefreshToken.createToken(user);
-           var authorities = [];
-           user.getRoles().then(roles =>{
-            for(let i=0; i<roles.length; i++){
-                authorities.push("ROLES_"+ roles[i].name.toUpperCase());
-            }
-            res.status(200).send({
-                id:user.id,
-                username:user.username,
-                email:user.email,
-                roles:authorities,
-                accessToken: token,
-                refreshToken:refreshToken,
-            });
-            
-           }).catch(err =>{
-            res.status(500).send({message: err.message})
-           })
-           
-    });
+
+        const token = jwt.sign({ id: user.id }, config.secret, {
+            algorithm: "HS256",
+            allowInsecureKeySizes: true,
+            expiresIn: config.jwtExpiration,
+        });
+
+        const refreshToken = await RefreshToken.createToken(user);
+
+        const authorities = (await user.getRoles()).map(role => "ROLES_" + role.name.toUpperCase());
+
+        res.status(200).send({
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            roles: authorities,
+            accessToken: token,
+            refreshToken: refreshToken,
+        });
+    } catch (err) {
+        res.status(500).send({ message: err.message });
+    }
 };
+
 
 exports.refreshToken = async (req,res)=>{
     const {refreshToken:refreshToken} = req.body;
@@ -107,16 +103,12 @@ exports.refreshToken = async (req,res)=>{
               token: requestToken,
           },
       })
-      //If refresh token existed is database 
-      //มีใน database ไหม
       if (!refreshToken) {
           res.status(403).json({
               message: "Refresh Token is not in Database!"
           })
           return;
       }
-      //If refresh token is expired 
-      //หมดอายุไหม
       if (RefreshToken.verifyExpiration(refreshToken)) {
           RefreshToken.destroy({
               where: {
@@ -140,7 +132,6 @@ exports.refreshToken = async (req,res)=>{
           accessToken: newAccessToken,
           refreshToken: refreshToken.token
       })
-
   } catch (error) {
       return res.status(500).send({
           message: error

@@ -40,7 +40,7 @@ checkRolesExisted = (req, res, next) => {
                 res
                     .status(400)
                     .send({
-                        message: "Failed Role does not exist " + req.body.roles[i],
+                        message: "Failed Role does not exist" + req.body.roles[i],
                     });
             }
         }

@@ -2,7 +2,6 @@ const express = require("express");
 const cors = require("cors");
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('./swagger.json');
-const sql = require("./models/db");
 const PORT = 8080;
 const restaurantRouter = require("./routes/restaurant.routes")
 const db = require("./models/index");
@@ -23,10 +22,6 @@ function initial() {
     });
     role.create({
         id: 2,
-        name: "moderator",
-    });
-    role.create({
-        id: 3,
         name: "admin",
     });
 
@@ -46,7 +41,7 @@ app.use(express.urlencoded({
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.get("/", (req, res) => {
-    res.send("<h1>Hello</h1>");
+    res.send("<h1>Foodpandy</h1>");
 })
 app.use("/", restaurantRouter)
 require("./routes/auth.routes")(app);
