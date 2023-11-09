@@ -26,8 +26,8 @@ exports.signup = (req, res) => {
                                 [Op.or]: req.body.roles,
                             },
                         },
-                    }).then(roles => {
-                        user.setRoles(roles).then(() => {
+                    }).then(role => {
+                        user.setRoles(role).then(() => {
                             res.send({
                                 message: "User was registered successfully"
                             });

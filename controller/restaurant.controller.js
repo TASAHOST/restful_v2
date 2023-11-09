@@ -61,7 +61,7 @@ Restaurant.removeById = async(id) => {
         if (rowDelete === 0 ) {
             throw {kind: "not found"};
         }
-        return ture
+        return true;
     } catch (error) {
         console.log("error:", error);
         throw error;
