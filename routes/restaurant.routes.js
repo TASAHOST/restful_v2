@@ -4,7 +4,7 @@ const Restaurant = require("../controller/restaurant.controller");
 const {authJwt} = require("../middleware")
 
 
-//http://localhost:5000/restaurant
+
 routes.post("/restaurants",async (req,res)=>{
     try {
        

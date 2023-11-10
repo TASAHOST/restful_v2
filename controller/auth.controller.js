@@ -8,7 +8,6 @@ const Op = db.Sequelize.Op;
 
 //SignUp
 exports.signup = (req, res) => {
-    //Save user to DB
     User.create({
             username: req.body.username,
             email: req.body.email,
@@ -93,7 +92,7 @@ exports.signin = async (req, res) => {
 
 
 exports.refreshToken = async (req, res) => {
-    const { refreshToken } = req.body;
+    const {refreshToken:refreshToken} = req.body;
 
     if (refreshToken == null) {
         return res.status(403).json({ message: "Refresh Token is required" });
