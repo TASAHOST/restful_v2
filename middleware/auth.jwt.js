@@ -16,8 +16,7 @@ const catchError = (err,res) =>{
 verifyToken = (req, res, next) => {
     let token = req.headers['x-access-token'];
     if (!token) {
-        return res.status(403).send({ message: "No token provided!" });
-
+        return res.status(403).send({ message: "ไม่ได้รับ Token!" });
     }
     jwt.verify(token, config.secret, (err, decoded) => {
         if (err) {
@@ -29,16 +28,14 @@ verifyToken = (req, res, next) => {
 };
 
 isAdmin = (req, res, next) => {
-    User.findByPK(req.userId), then(user => {
+    User.findByPk(req.userId).then(user => {
         user.getRoles().then(roles => {
-            for (let i = 0; i < roles.length; i++) {
-                if (roles[i].name === "admin") {
-                    next()
-                    return;
-                }
+            let isAdmin = roles.some(role => role.name === "admin");
+            if (isAdmin) {
+                next();
+            } else {
+                res.status(403).send({ message: "ต้องการสิทธิ์ Admin!" });
             }
-            res.status(403).send({ message: "Require Admin Role!" });
-            return;
         });
     });
 };
