@@ -1,6 +1,7 @@
 const express = require("express");
 const routes = express.Router();
 const Restaurant = require("../controller/restaurant.controller");
+const {authJwt} = require("../middleware")
 
 
 routes.post("/restaurants",async (req,res)=>{
@@ -37,7 +38,7 @@ routes.get("/restaurant/:id", async (req,res)=>{
     }
 })
 
-routes.put("/restaurant/:id", async (req,res)=>{
+routes.put("/restaurant/:id",[authJwt.verifyToken, authJwt.isAdmin], async (req,res)=>{
     try {
         const restaurantId = req.params.id;
         const restaurantData = req.body;
@@ -52,7 +53,7 @@ routes.put("/restaurant/:id", async (req,res)=>{
     };
 })
 
-routes.delete("/restaurant/:id", async (req, res)=>{
+routes.delete("/restaurant/:id",[authJwt.verifyToken, authJwt.isAdmin], async (req, res)=>{
     try {
         const restaurantId = req.params.id;
         const isDelete = await Restaurant.removeById(restaurantId);
