@@ -3,7 +3,6 @@ const routes = express.Router();
 const Restaurant = require("../controller/restaurant.controller");
 
 
-//http://localhost:5000/restaurant
 routes.post("/restaurants",async (req,res)=>{
     try {
         const newRestaurant = req.body;
@@ -19,7 +18,7 @@ routes.get("/restaurants", async(req, res)=>{
         const restaurants = await Restaurant.getAll();
         res.status(200).json(restaurants);
     } catch (error) {
-        res.status(500).json({error:"failed to ger all restaurants"});
+        res.status(500).json({error:"failed to get all restaurants"});
     }
 })
 
@@ -33,7 +32,7 @@ routes.get("/restaurant/:id", async (req,res)=>{
         if (error.kind === "not_found") {
             res.status(400).json("Restaurant not found")
         }else{
-            res.status(500).json({error:"failed to Update Restaurant data"});
+            res.status(500).json({error:"failed to get Restaurant data"});
         }
     }
 })
@@ -48,7 +47,7 @@ routes.put("/restaurant/:id", async (req,res)=>{
         if (error.kind === "not_Found") {
             res.status(400).json({error:"Restaurant not found"});
         }else {
-            res.status(500).json({error: "Failed to up restaurant data"});
+            res.status(500).json({error: "Failed to update restaurant data"});
         }
     };
 })

@@ -1,8 +1,5 @@
 const db = require("../models");
 const config = require("../config/auth.config");
-/* const User = db.user;
-const Role = db.role;
-const RefreshToken = db.refreshToken; */
 const {user:User, role:Role , refreshToken:RefreshToken} = db;
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
@@ -11,7 +8,6 @@ const Op = db.Sequelize.Op;
 
 //SignUp
 exports.signup = (req, res) => {
-    //Save user to DB
     User.create({
             username: req.body.username,
             email: req.body.email,
@@ -26,8 +22,8 @@ exports.signup = (req, res) => {
                                 [Op.or]: req.body.roles,
                             },
                         },
-                    }).then(role => {
-                        user.setRoles(role).then(() => {
+                    }).then(roles => {
+                        user.setRoles(roles).then(() => {
                             res.send({
                                 message: "User was registered successfully"
                             });
@@ -48,102 +44,102 @@ exports.signup = (req, res) => {
         })
 };
 
+
 //signin
-exports.signin = (req, res) => {
-    //SELECT * FROM user WHERE username = req.body.username
-    User.findOne({
-        where:{username: req.body.username,
-        }
-        
-    }).then(async user => {
+exports.signin = async (req, res) => {
+    try {
+        const user = await User.findOne({
+            where: { username: req.body.username }
+        });
+
         if (!user) {
             return res.status(404).send({
                 message: "User not found"
             });
         }
-        let passwordIsValid = bcrypt.compareSync(req.body.password, user.password)
+        
+        const passwordIsValid = await bcrypt.compare(req.body.password, user.password);
+
         if (!passwordIsValid) {
             return res.status(401).send({
-                acceccToken: null,
-                message:"Invalid Password"
+                accessToken: null,
+                message: "Invalid Password"
             });
         }
-        const token = jwt.sign({id:user.id},
-           config.secret,{
-            algorithm:"HS256",
-            allowInsecureKeySizes:true,
-            expiresIn: config.jwtExpiration, //24hr = 60 * 24
-           });
-           const refreshToken = await RefreshToken.createToken(user);
-           var authorities = [];
-           user.getRoles().then(roles =>{
-            for(let i=0; i<roles.length; i++){
-                authorities.push("ROLES_"+ roles[i].name.toUpperCase());
-            }
-            res.status(200).send({
-                id:user.id,
-                username:user.username,
-                email:user.email,
-                roles:authorities,
-                accessToken: token,
-                refreshToken:refreshToken,
-            });
-            
-           }).catch(err =>{
-            res.status(500).send({message: err.message})
-           })
-           
-    });
+
+        const token = jwt.sign({ id: user.id }, config.secret, {
+            algorithm: "HS256",
+            allowInsecureKeySizes: true,
+            expiresIn: config.jwtExpiration,
+        });
+
+        const refreshToken = await RefreshToken.createToken(user);
+
+        const authorities = (await user.getRoles()).map(role => "ROLES_" + role.name.toUpperCase());
+
+        res.status(200).send({
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            roles: authorities,
+            accessToken: token,
+            refreshToken: refreshToken,
+        });
+    } catch (err) {
+        res.status(500).send({ message: err.message });
+    }
 };
 
-exports.refreshToken = async (req,res)=>{
-    const {refreshToken:refreshToken} = req.body;
-    if (refreshToken == null) {
-        return res.status(403).json({message:"Refresh Token is req"})
-    }
-  try {
-      let refreshToken = await RefreshToken.findOne({
-          where: {
-              token: requestToken,
-          },
-      })
-      //If refresh token existed is database 
-      //มีใน database ไหม
-      if (!refreshToken) {
-          res.status(403).json({
-              message: "Refresh Token is not in Database!"
-          })
-          return;
-      }
-      //If refresh token is expired 
-      //หมดอายุไหม
-      if (RefreshToken.verifyExpiration(refreshToken)) {
-          RefreshToken.destroy({
-              where: {
-                  id: refreshToken.id
-              }
-          });
-          res.status(403).json({
-              message: "Refresh Token was expired. Please make a new signin request"
-          });
-          return;
-      }
-      const user = await refreshToken.getUser();
-      let newAccessToken = token = jwt.sign({
-          id: user.id
-      }, config.secret, {
-          algorithm: "HS256",
-          allowInsecureKeySizes: true,
-          expiresIn: config.jwtExpiration,
-      });
-      return res.status(200).json({
-          accessToken: newAccessToken,
-          refreshToken: refreshToken.token
-      })
 
-  } catch (error) {
-      return res.status(500).send({
-          message: error
-      });
+exports.refreshToken = async (req, res) => {
+    const {refreshToken:refreshToken} = req.body;
+
+    if (refreshToken == null) {
+        return res.status(403).json({ message: "Refresh Token is required" });
     }
-}
+
+    try {
+        const foundRefreshToken = await RefreshToken.findOne({
+            where: {
+                token: refreshToken,
+            },
+        });
+
+        if (!foundRefreshToken) {
+            res.status(403).json({
+                message: "Refresh Token is not in the Database!"
+            });
+            return;
+        }
+
+        if (await RefreshToken.verifyExpiration(foundRefreshToken)) {
+            await RefreshToken.destroy({
+                where: {
+                    id: foundRefreshToken.id
+                }
+            });
+            res.status(403).json({
+                message: "Refresh Token has expired. Please make a new sign-in request"
+            });
+            return;
+        }
+
+        const user = await foundRefreshToken.getUser();
+        const newAccessToken = jwt.sign({
+            id: user.id
+        }, config.secret, {
+            algorithm: "HS256",
+            allowInsecureKeySizes: true,
+            expiresIn: config.jwtExpiration,
+        });
+
+        return res.status(200).json({
+            accessToken: newAccessToken,
+            refreshToken: foundRefreshToken.token
+        });
+    } catch (error) {
+        return res.status(500).send({
+            message: error.message
+        });
+    }
+};
