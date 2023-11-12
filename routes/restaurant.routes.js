@@ -60,6 +60,7 @@ routes.delete("/restaurant/:id",[authJwt.verifyToken, authJwt.isAdmin], async (r
         if (isDelete) {
         res.status(204).json({message: "Restaurant id " + restaurantId + "is deleted", isDeleted:isDelete});
         }
+        
     } catch (error) {
         if (error.kind === "not_found") {
             res.status(404).json({error: "Restaurant not found"});
